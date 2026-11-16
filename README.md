@@ -109,13 +109,83 @@ Things that will collide with what you already have:
 - [ ] Leave and rejoin: slimes (up to capacity), coins, upgrades and tank contents are restored. Try a quick server hop and check nothing duplicates.
 - [ ] Mobile emulator: VAC/SHOOT buttons work, tapping a slot selects it, the HUD scales, and frame rate holds with 5 players.
 
+## Round 2: coins, UI, walls, portals, SFX, travel
+
+### Putting it into your place (no Rojo)
+Run `python3 tools/build_place.py`, then in Studio with your place open, use right-click > **Insert from File** for each of these:
+| File | Insert into |
+|---|---|
+| `build/Shared.rbxmx` | ReplicatedStorage (replace the old `Shared`) |
+| `build/Server.rbxmx` | ServerScriptService (replace the old `Server`) |
+| `build/Client.rbxmx` | StarterPlayer > StarterPlayerScripts (replace the old `Client`) |
+| `build/StudioTools.rbxmx` | ServerStorage (WallKit + Fixers, used from the command bar) |
+
+### Slime Coins
+- The mesh is `assets/coin/SlimeCoin.obj` with `SlimeCoin_tex.png`. Import it with Import 3D, name the MeshPart `SlimeCoin`, and put it in `ReplicatedStorage.Assets`.
+- **Money station:** tag the station's pad part `CoinStation`. The station script then keeps `Stored` (uncollected amount) up to date. On collect it sets `CollectedBy = player.UserId`, bumps `CollectCount`, and sets `Stored = 0`.
+- Clients stack physical coins on the pad and fly them into the collector. It's capped at 30 coins and only drawn within 150 studs.
+
+### HUD (`src/client/Hud.luau`)
+- Laid out after your reference:
+  - Level badge and XP goo bar
+  - Shop/Index/Invite on the left
+  - Hoverboard/Jetpack/Home on the right
+  - Coins and coins/sec
+  - Goo hotbar with numbered slots
+- Level, XP and income come from player attributes: `RanchLevel`, `RanchXP`, `RanchXPMax`, `CoinsPerSecond`. If your game sets a `Coins` attribute, it overrides the displayed coins.
+- Icons are emoji placeholders. Put real image ids in `Config.UI.Icons`.
+- Buttons fire signals (`Hud.IndexPressed`, `Hud.HoverboardPressed`, `Hud.SettingsPressed`...) for your existing systems to hook.
+- **Hotbar:** players start with **2 slots**. Each Extra Slot upgrade pops a new slot in with a scale-overshoot, a flash, sparkles, "NEW SLOT!" and a sound.
+- **Data note:** slot levels were re-indexed. A save that had 3 slots now has 2. That's fine before launch; migrate in `DataService.sanitize` if you have real players.
+
+### Fast travel (`src/server/QuickTravel.luau`)
+- **Home button:** teleports you to your ranch on a 20s cooldown. It's **blocked for 30s after you steal**, so it can't be used as a getaway.
+- **Travel pads:** tag a part `TravelPad`, give it `PadName`, and set `Target` to another pad's name (or `"Home"`). Use a pair for the area 3 → 4 shortcut, and put a Home pad by each far-area portal.
+
+### Portals (`src/client/PortalSwirl.luau`)
+- Delete the old spinning blocks, then tag the portal's flat surface part `PortalSwirl`.
+- Optional attributes: `Color1`, `Color2`, `Arms`, `Speed`.
+- Each arm is a chain of Beams sharing attachments, so it's one continuous ribbon. It reads from both sides, and the discs are layered so nothing z-fights. Only portals near the camera animate.
+
+### Walls (`studio/WallKit.luau`, run from the command bar)
+1. Place a guide Part where the wall goes, stretched along X, with its **front face toward the play area**.
+2. Select it, then run:
+```lua
+require(game.ServerStorage.WallKit).fromSelection("Beach")   -- or "Volcano"
+```
+- Ctrl+Z undoes it. A `Seed` attribute on the guide makes the result repeatable.
+- The kit was run in a real Luau VM, rendered, and scanned for overlapping coplanar faces on 10 walls: **0 z-fighting pairs**. Every detail is embedded in something solid, and lava cracks get joints at every bend.
+- **Cost:** it averages around 6 parts per stud of wall. Keep StreamingEnabled on.
+- It's a close parts-based take on your references, not a 1:1 copy. Identical needs custom meshes.
+
+### Fixing existing signs and cracks (`studio/Fixers.luau`)
+```lua
+require(game.ServerStorage.Fixers).signs()   -- select the sign models first
+require(game.ServerStorage.Fixers).cracks()  -- select crack parts / their model first
+```
+- `signs()` puts each board between its posts in their plane, keeps the text facing the same way, and grounds hovering posts.
+- `cracks()` turns each crack flush to the rock behind it (back sunk 0.04 studs in) and adds round joints where ends meet, closing the gaps at bends.
+
+### SFX (`assets/sfx`, made by `tools/make_sfx.py`)
+- 32 sounds generated from code, so there are no licensing issues:
+  - hover loop / start / stop
+  - vac loop / start / stop
+  - 4 slurp-pops, 3 shoots
+  - 6 slime squeaks, 3 boings, 2 noms
+  - 3 coins, slot unlock, wall rise, alarm, denied, click
+- Loops are seamless. Upload the `.ogg` files and paste the ids into `Config.Sounds` (variants go in the lists). Until then, built-in fallbacks play.
+- Slime voices are quiet and rate-limited (`Config.SlimeVoice`).
+- Hoverboard: tag the board's main part `Hoverboard` and `HoverboardSound` handles it. Pitch and volume follow speed.
+
 ## Layout
 ```
 src/shared   Config (all tunables), ItemIds, Remotes
 src/server   Main, MapBuilder, PlotService, SlimeService, VacService, MarketService,
              ShopService, DataService, StateSync, ItemFactory, Collision
+src/server   + QuickTravel
 src/client   Main, Hud, ShopUI, VacController, VacFx, Jetpack, Honeycomb, PlotFx,
-             SlimeJuice, Sounds, ClientState
-tools        build_place.py (rbxlx without Rojo), make_honeycomb.py
-assets       honeycomb.png
+             SlimeJuice, Sounds, ClientState, PortalSwirl, CoinStation, HoverboardSound
+studio       WallKit, Fixers (edit-mode command bar tools -> ServerStorage)
+tools        build_place.py, make_honeycomb.py, make_coin.py, make_sfx.py
+assets       honeycomb.png, coin/, sfx/
 ```

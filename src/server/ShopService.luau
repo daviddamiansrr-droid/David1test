@@ -15,7 +15,6 @@ local FxRemote = Remotes.event("Fx")
 
 local ShopService = {}
 local lastCall: { [Player]: number } = {}
-local workshopPos = Vector3.zero
 
 local function rootPos(player: Player): Vector3?
 	local char = player.Character
@@ -91,10 +90,7 @@ local function buyVac(player: Player, d: DataService.Data, key: string): (boolea
 	if not def then
 		return false, "Unknown upgrade"
 	end
-	local pos = rootPos(player)
-	if not pos or (pos - workshopPos).Magnitude > 25 then
-		return false, "Visit the Vac Workshop"
-	end
+	-- buyable from anywhere (HUD Shop button); spending your own coins isn't an exploit risk
 	local level = (d.Vac :: any)[key] :: number
 	local nextLevel = level + 1
 	local price = def.Prices[nextLevel]
@@ -116,8 +112,7 @@ local function buyVac(player: Player, d: DataService.Data, key: string): (boolea
 	return true, `{def.Name} upgraded!`
 end
 
-function ShopService.init(workshopPosition: Vector3)
-	workshopPos = workshopPosition
+function ShopService.init(_workshopPosition: Vector3)
 	Remotes.func("Purchase").OnServerInvoke = function(player: Player, category: any, key: any)
 		local t = os.clock()
 		if t - (lastCall[player] or 0) < 0.25 then

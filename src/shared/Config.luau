@@ -107,7 +107,8 @@ Config.Vac = {
 Config.VacUpgrades = {
 	Tank = { Name = "Tank Booster", Values = { 20, 30, 45, 60 }, Prices = { 0, 400, 1500, 4000 },
 		Desc = "More of each item per slot." },
-	Slots = { Name = "Extra Tank", Values = { 3, 4, 5 }, Prices = { 0, 1000, 4000 },
+	-- everyone starts with 2; each upgrade pops one more slot into the hotbar
+	Slots = { Name = "Extra Slot", Values = { 2, 3, 4, 5 }, Prices = { 0, 600, 2000, 5000 },
 		Desc = "Carry more item types at once." },
 	Power = { Name = "Vac Power", Values = { 14, 18, 23 }, Pull = { 30, 38, 46 }, Prices = { 0, 800, 3000 },
 		Desc = "Longer range, stronger pull." },
@@ -215,18 +216,81 @@ Config.Fence = {
 	PatternDistance = 140, -- honeycomb SurfaceGuis only exist within this range of the camera
 }
 
--- Sound ids. The rbxasset:// ones ship with every Roblox client so they always
--- load, but they're generic. Swap in Creator Store sounds for a better feel.
+----------------------------------------------------------------------
+-- Sounds
+----------------------------------------------------------------------
+-- Generated pack lives in assets/sfx (tools/make_sfx.py). Upload the .ogg files
+-- and paste "rbxassetid://<id>" below. A list picks a random variant each play.
+-- Anything left "" falls back to the built-in sound in Fallback so the game
+-- never goes silent while you're uploading.
 Config.Sounds = {
+	VacLoop = "", -- vac_loop.ogg
+	VacStart = "", -- vac_start.ogg
+	VacStop = "", -- vac_stop.ogg
+	Absorb = { "", "", "", "" }, -- slurp_pop_1..4.ogg
+	Shoot = { "", "", "" }, -- shoot_1..3.ogg
+	SlimeSqueak = { "", "", "", "", "", "" }, -- slime_squeak_1..6.ogg
+	SlimeBoing = { "", "", "" }, -- slime_boing_1..3.ogg
+	SlimeNom = { "", "" }, -- slime_nom_1..2.ogg
+	Coin = { "", "", "" }, -- coin_1..3.ogg
+	SlotUnlock = "", -- slot_unlock.ogg
+	Upgrade = "", -- wall_rise.ogg
+	Alarm = "", -- alarm.ogg
+	Full = "", -- denied.ogg
+	Button = "", -- ui_click.ogg
+	HoverLoop = "", -- hover_loop.ogg
+	HoverStart = "", -- hover_start.ogg
+	HoverStop = "", -- hover_stop.ogg
+}
+
+-- volume per sound (0-1). Slime voices are deliberately quiet.
+Config.SoundVolume = {
+	VacLoop = 0.35, VacStart = 0.45, VacStop = 0.4, Absorb = 0.55, Shoot = 0.55,
+	SlimeSqueak = 0.22, SlimeBoing = 0.18, SlimeNom = 0.3, Coin = 0.5, SlotUnlock = 0.6,
+	Upgrade = 0.6, Alarm = 0.5, Full = 0.4, Button = 0.35, HoverLoop = 0.4, HoverStart = 0.5, HoverStop = 0.45,
+}
+
+Config.SoundFallback = {
 	VacLoop = "rbxasset://sounds/swoosh.wav",
 	Absorb = "rbxasset://sounds/electronicpingshort.wav",
 	Shoot = "rbxasset://sounds/action_jump.mp3",
-	Pop = "rbxasset://sounds/action_jump_land.mp3",
+	SlimeBoing = "rbxasset://sounds/action_jump_land.mp3",
+	SlimeNom = "rbxasset://sounds/action_jump_land.mp3",
 	Full = "rbxasset://sounds/clickfast.wav",
 	Coin = "rbxasset://sounds/electronicpingshort.wav",
+	SlotUnlock = "rbxasset://sounds/electronicpingshort.wav",
 	Upgrade = "rbxasset://sounds/electronicpingshort.wav",
+	Alarm = "rbxasset://sounds/clickfast.wav",
 	Button = "rbxasset://sounds/button.wav",
-	Splash = "rbxasset://sounds/impact_water.mp3",
+	HoverLoop = "rbxasset://sounds/swoosh.wav",
+}
+
+Config.SlimeVoice = {
+	Range = 40, -- only slimes this close to the camera talk
+	GlobalGap = 0.35, -- min seconds between any two slime voices
+	PerSlimeGap = 5, -- min seconds before the same slime talks again
+	Chance = 0.08, -- per eligible slime per voice tick
+}
+
+----------------------------------------------------------------------
+-- UI
+----------------------------------------------------------------------
+-- Optional uploaded art. Empty = drawn in code (goo blobs, emoji icons).
+Config.UI = {
+	GooPanel = "", -- assets/ui/goo_panel.png (9-slice)
+	Icons = {
+		Shop = "", Index = "", Invite = "", Hoverboard = "", Jetpack = "",
+		Home = "", Coin = "", Income = "", LevelStar = "", SlimeFace = "", Settings = "",
+	},
+}
+
+----------------------------------------------------------------------
+-- Fast travel (so getting home from deep areas isn't a hike)
+----------------------------------------------------------------------
+Config.Travel = {
+	HomeCooldown = 20, -- seconds between "Home" teleports
+	BlockedAfterSteal = 30, -- can't teleport home this soon after stealing
+	PadCooldown = 3,
 }
 
 return Config

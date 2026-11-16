@@ -8,6 +8,9 @@
     "ServerScriptService": {
       "Server": { "$path": "src/server" }
     },
+    "ServerStorage": {
+      "$path": "studio"
+    },
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": { "$path": "src/client" }

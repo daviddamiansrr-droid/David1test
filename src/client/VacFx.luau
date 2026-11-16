@@ -224,22 +224,32 @@ local function setupTool(tool: Tool)
 	}
 	tools[tool] = fx
 
+	local loopVolume = Sounds.volumeOf("VacLoop")
+	local first = true
 	local function apply()
 		local on = tool:GetAttribute("VacOn") == true
+		if on == fx.On and not first then
+			return
+		end
 		fx.On = on
 		for _, e in fx.Suction do
 			e.Enabled = on
 		end
+		if not first then
+			-- spin-up / spin-down one-shots layered over the loop
+			Sounds.at(if on then "VacStart" else "VacStop", nozzle.Position, 1, 1, 70)
+		end
+		first = false
 		if loop then
 			if on then
-				loop.PlaybackSpeed = 0.55
-				loop.Volume = 0.45
+				loop.PlaybackSpeed = 0.8
+				loop.Volume = 0
 				if not loop.IsPlaying then
 					loop:Play()
 				end
-				TweenService:Create(loop, TweenInfo.new(0.35), { PlaybackSpeed = 0.85 }):Play()
+				TweenService:Create(loop, TweenInfo.new(0.3, Enum.EasingStyle.Quad), { PlaybackSpeed = 1, Volume = loopVolume }):Play()
 			else
-				local tw = TweenService:Create(loop, TweenInfo.new(0.2), { PlaybackSpeed = 0.4, Volume = 0 })
+				local tw = TweenService:Create(loop, TweenInfo.new(0.22), { PlaybackSpeed = 0.7, Volume = 0 })
 				tw:Play()
 				tw.Completed:Connect(function()
 					if not fx.On then
@@ -296,7 +306,7 @@ local function onFx(kind: string, ...: any)
 				VacFx.onLocalAbsorb(id)
 			end
 		else
-			Sounds.at("Absorb", pos, 0.35, 1.2 + math.random() * 0.3)
+			Sounds.at("Absorb", pos, 0.7)
 		end
 	elseif kind == "shoot" then
 		local who: Player, id: string = args[1], args[2]
@@ -304,26 +314,26 @@ local function onFx(kind: string, ...: any)
 			local fx = VacFx.toolOf(who)
 			if fx then
 				VacFx.muzzle(fx, (ItemIds.colors(id)))
-				Sounds.at("Shoot", fx.Nozzle.Position, 0.4, 1.4)
+				Sounds.at("Shoot", fx.Nozzle.Position, 0.8)
 			end
 		end
 	elseif kind == "gem" then
 		local pos: Vector3, color: Color3 = args[1], args[2]
 		burstAt(pos, color, 10, 8)
 		if camDistance(pos) < 70 then
-			Sounds.at("Pop", pos, 0.5, 1.7 + math.random() * 0.3)
+			Sounds.at("SlimeBoing", pos, 1.2, 1.6)
 		end
 	elseif kind == "eat" then
 		local pos: Vector3, color: Color3 = args[1], args[2]
 		burstAt(pos, color, 8, 5)
 		if camDistance(pos) < 60 then
-			Sounds.at("Pop", pos, 0.45, 0.9)
+			Sounds.at("SlimeNom", pos, 1.3)
 		end
 	elseif kind == "largo" then
 		local pos: Vector3, color: Color3 = args[1], args[2]
 		burstAt(pos, color, 40, 16, nil, 1.1)
 		burstAt(pos, Color3.new(1, 1, 1), 20, 10, SMOKE, 2)
-		Sounds.at("Upgrade", pos, 0.6, 0.7)
+		Sounds.at("SlotUnlock", pos, 0.8, 0.8)
 		floatText(pos + Vector3.new(0, 3, 0), "LARGO!", color)
 	elseif kind == "collect" then
 		local from: Vector3, to: Vector3, color: Color3 = args[1], args[2], args[3]
@@ -348,17 +358,15 @@ local function onFx(kind: string, ...: any)
 		PlotFx.flashCaps(index, if locked then Config.Fence.LockColor else Color3.fromRGB(120, 255, 170))
 		local model = PlotFx.plotModel(index)
 		if model then
-			Sounds.at("Upgrade", model:GetPivot().Position, 0.5, if locked then 0.6 else 1.2)
+			Sounds.at("Upgrade", model:GetPivot().Position, 0.6, if locked then 0.7 else 1.2)
 		end
 	elseif kind == "upgrade" then
 		PlotFx.upgradeBurst(args[1])
 	elseif kind == "alarm" then
 		PlotFx.flashCaps(args[1], Color3.fromRGB(255, 60, 60))
-		for k = 0, 2 do
-			task.delay(k * 0.18, Sounds.play, "Full", 0.6, 1.6)
-		end
+		Sounds.play("Alarm")
 	elseif kind == "full" then
-		Sounds.play("Full", 0.4, 0.8)
+		Sounds.play("Full")
 		Hud.toast("Tank full for that item", "warn")
 	end
 end

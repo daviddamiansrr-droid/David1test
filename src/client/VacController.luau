@@ -158,7 +158,7 @@ local function shoot()
 	local index, slot = selectedSlot()
 	if not slot or not slot.Id or slot.Count <= 0 then
 		Hud.denySlot(index)
-		Sounds.play("Full", 0.35, 0.6)
+		Sounds.play("Full")
 		return
 	end
 	lastShot = t
@@ -170,7 +170,7 @@ local function shoot()
 	if fx then
 		VacFx.muzzle(fx, (ItemIds.colors(slot.Id)))
 	end
-	Sounds.play("Shoot", 0.55, 1.25 + math.random() * 0.15)
+	Sounds.play("Shoot")
 	recoilVel += 2.4
 	shake += 0.006
 	fovKick -= 2
@@ -189,7 +189,7 @@ local function selectSlot(i: number)
 	end
 	VacInput:FireServer("select", i)
 	snap.Selected = i -- optimistic; next server snapshot confirms
-	Sounds.play("Button", 0.3, 1.4)
+	Sounds.play("Button", 1, 1.2)
 	Hud.bounceSlot(i)
 	updateFluid()
 end
@@ -207,7 +207,7 @@ VacFx.onLocalAbsorb = function(id: string)
 	local t = os.clock()
 	streak = if t - lastAbsorb < 0.6 then streak + 1 else 0
 	lastAbsorb = t
-	Sounds.play("Absorb", 0.45, 1 + math.min(streak, 12) * 0.06)
+	Sounds.play("Absorb", 1, 1 + math.min(streak, 10) * 0.045)
 	shake += 0.0035
 	fovKick += 1.2
 	local snap = ClientState.Data

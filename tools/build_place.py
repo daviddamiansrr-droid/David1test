@@ -1,6 +1,13 @@
-"""Builds build/SlimeRanch.rbxlx from src/ without needing Rojo.
+"""Builds Studio files from src/ without needing Rojo.
 
     python3 tools/build_place.py
+
+Outputs (in build/):
+  SlimeRanch.rbxlx   whole place (open it directly)
+  Shared.rbxmx       -> right-click ReplicatedStorage > Insert from File
+  Server.rbxmx       -> right-click ServerScriptService > Insert from File
+  Client.rbxmx       -> right-click StarterPlayer.StarterPlayerScripts > Insert from File
+  StudioTools.rbxmx  -> right-click ServerStorage > Insert from File (WallKit, Fixers)
 
 Mirrors default.project.json:
   src/shared -> ReplicatedStorage.Shared
@@ -52,6 +59,18 @@ def scripts_from(folder):
     return out
 
 
+def write(path, body):
+    xml = (
+        '<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">'
+        + body + "</roblox>"
+    )
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(xml)
+    print(f"wrote {path}")
+
+
 def main(out_path):
     body = "".join([
         item("ReplicatedStorage", "ReplicatedStorage", [item("Folder", "Shared", scripts_from("src/shared"))]),
@@ -59,6 +78,7 @@ def main(out_path):
         item("StarterPlayer", "StarterPlayer", [
             item("StarterPlayerScripts", "StarterPlayerScripts", [item("Folder", "Client", scripts_from("src/client"))]),
         ]),
+        item("ServerStorage", "ServerStorage", scripts_from("studio")),
     ])
     xml = (
         '<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" '
@@ -70,6 +90,11 @@ def main(out_path):
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(xml)
     print(f"wrote {out_path}")
+    out_dir = os.path.dirname(out_path)
+    write(os.path.join(out_dir, "Shared.rbxmx"), item("Folder", "Shared", scripts_from("src/shared")))
+    write(os.path.join(out_dir, "Server.rbxmx"), item("Folder", "Server", scripts_from("src/server")))
+    write(os.path.join(out_dir, "Client.rbxmx"), item("Folder", "Client", scripts_from("src/client")))
+    write(os.path.join(out_dir, "StudioTools.rbxmx"), "".join(scripts_from("studio")))
 
 
 if __name__ == "__main__":

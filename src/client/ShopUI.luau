@@ -148,7 +148,7 @@ local function render()
 				local ok, msg = Remotes.func("Purchase"):InvokeServer(category, row.Key)
 				busy = false
 				Hud.toast(msg or "", if ok then "good" else "error")
-				Sounds.play(if ok then "Upgrade" else "Full", 0.6, if ok then 1 else 0.7)
+				Sounds.play(if ok then "SlotUnlock" else "Full")
 				if ok then
 					local s = b:FindFirstChildOfClass("UIScale") or new("UIScale", {}, b)
 					s.Scale = 1.2
@@ -181,7 +181,7 @@ function ShopUI.open(cat: string)
 	window.Visible = true
 	scale.Scale = 0.7
 	TweenService:Create(scale, TweenInfo.new(0.3, Enum.EasingStyle.Back), { Scale = 1 }):Play()
-	Sounds.play("Button", 0.4, 1.1)
+	Sounds.play("Button")
 	render()
 end
 

@@ -11,6 +11,7 @@ local EVENTS = {
 	"Notify", -- S->C  (text, kind)
 	"Fx", -- S->C  (kind, ...)
 	"OpenShop", -- S->C  (category)
+	"Travel", -- C->S  ("home")
 }
 local FUNCTIONS = {
 	"Purchase", -- C->S  (category, key) -> (ok, message)

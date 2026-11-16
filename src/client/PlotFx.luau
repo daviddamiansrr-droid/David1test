@@ -71,8 +71,7 @@ local function rise(model: Model, delta: number)
 	end
 	local dist = (Workspace.CurrentCamera.CFrame.Position - center).Magnitude
 	if dist < 120 then
-		Sounds.at("Upgrade", center, 0.8, 0.8)
-		task.delay(0.4, Sounds.at, "Upgrade", center, 0.6, 1.1)
+		Sounds.at("Upgrade", center, 1, 1, 160)
 	end
 end
 

@@ -672,6 +672,7 @@ function PlotService.onStolen(plot: Plot, thief: Player, display: string)
 	if not plot.Owner then
 		return
 	end
+	thief:SetAttribute("StoleAt", Workspace:GetServerTimeNow()) -- QuickTravel blocks Home for a bit
 	notify(plot.Owner, `{thief.DisplayName} stole your {display}!`, "alarm")
 	notify(thief, `Stolen: {display}. Get it home!`, "good")
 	local tier = tierOf(plot)
